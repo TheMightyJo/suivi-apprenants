@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Suivi des apprenants — Trained Manager</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+
+<style>
+/* ==================================================================
+   Material Design 3 — palette tonale dérivée du bleu pétrole du logo
+   ================================================================== */
+:root{
+  /* Couleurs sources de la marque */
+  --brand-petrole:#17788A;
+  --brand-vert:#68B140;
+
+  /* Primary (pétrole) */
+  --md-primary:#00687B;
+  --md-on-primary:#FFFFFF;
+  --md-primary-container:#AEECFF;
+  --md-on-primary-container:#001F27;
+
+  /* Secondary (vert du « AI ») */
+  --md-secondary:#3F6A21;
+  --md-on-secondary:#FFFFFF;
+  --md-secondary-container:#C0F199;
+  --md-on-secondary-container:#0C2000;
+
+  /* Surfaces */
+  --md-surface:#F5FAFC;
+  --md-surface-1:#EFF5F8;
+  --md-surface-2:#E9F1F4;
+  --md-surface-3:#E3EDF1;
+  --md-on-surface:#171C1E;
+  --md-on-surface-variant:#3F484B;
+  --md-outline:#6F797C;
+  --md-outline-variant:#BFC8CB;
+
+  /* Statuts — teintes MD3 : couleur pleine + conteneur clair */
+  --st-gold:#8E3A62;        --stc-gold:#FFD8E7;
+  --st-dropped:#A5341B;     --stc-dropped:#FFDAD2;
+  --st-never:#8A5100;       --stc-never:#FFDDB8;
+  --st-nudge:#725B00;       --stc-nudge:#FFE175;
+  --st-active:#00687B;      --stc-active:#AEECFF;
+  --st-done:#3F6A21;        --stc-done:#C0F199;
+  --st-unknown:#5A6265;     --stc-unknown:#DEE3E5;
+
+  /* Élévations Material */
+  --el1:0 1px 2px rgba(0,0,0,.16), 0 1px 3px 1px rgba(0,0,0,.06);
+  --el2:0 1px 2px rgba(0,0,0,.16), 0 2px 6px 2px rgba(0,0,0,.08);
+  --el3:0 4px 8px 3px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.16);
+
+  /* Formes */
+  --r-xs:8px; --r-sm:12px; --r-md:16px; --r-lg:20px; --r-full:100px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:var(--md-surface);
+  color:var(--md-on-surface);
+  font-family:"Roboto",system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.45;
+  min-height:100vh; padding:24px 16px 64px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto}
+.hidden{display:none!important}
+
+/* ---------- Typographie Material ---------- */
+.headline{font-size:28px;font-weight:400;line-height:1.2;letter-spacing:0}
+.title-lg{font-size:16px;font-weight:500;letter-spacing:.1px}
+.title-md{font-size:14px;font-weight:500;letter-spacing:.1px}
+.label-lg{font-size:14px;font-weight:500;letter-spacing:.1px}
+.label-md{font-size:12px;font-weight:500;letter-spacing:.5px}
+.label-sm{font-size:11px;font-weight:500;letter-spacing:.5px}
+.body-md{font-size:14px;font-weight:400;letter-spacing:.25px}
+.body-sm{font-size:12px;font-weight:400;letter-spacing:.4px;color:var(--md-on-surface-variant)}
+
+.icon{
+  font-family:"Material Symbols Outlined";
+  font-size:20px;line-height:1;
+  font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20;
+  user-select:none;
+}
+.icon.fill{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20}
+
+/* ---------- Marque ---------- */
+.brand{
+  font-family:"Montserrat",sans-serif;font-weight:700;font-size:18px;
+  color:var(--brand-petrole);line-height:1;margin-bottom:18px;display:inline-block;
+}
+.brand .ia{color:var(--brand-vert)}
+.brand .sub{
+  display:block;font-weight:600;font-size:10px;letter-spacing:.3em;
+  margin-top:4px;opacity:.8;
+}
+
+/* ---------- Barre supérieure ---------- */
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px}
+.topbar .overline{font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--md-primary);margin-bottom:4px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- Boutons Material ---------- */
+button{font:inherit;border:none;background:none;color:inherit;cursor:pointer}
+
+.btn{
+  position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;gap:8px;
+  height:40px;padding:0 16px;border-radius:var(--r-full);
+  font-size:14px;font-weight:500;letter-spacing:.1px;
+  text-decoration:none;transition:box-shadow .2s,background .15s;
+}
+.btn .icon{font-size:18px}
+
+.btn-text{color:var(--md-primary);padding:0 12px}
+.btn-text:hover{background:color-mix(in srgb,var(--md-primary) 8%,transparent)}
+
+.btn-outlined{color:var(--md-primary);border:1px solid var(--md-outline-variant);background:transparent}
+.btn-outlined:hover{background:color-mix(in srgb,var(--md-primary) 8%,transparent)}
+
+.btn-tonal{background:var(--md-secondary-container);color:var(--md-on-secondary-container)}
+.btn-tonal:hover{box-shadow:var(--el1)}
+
+.btn-filled{background:var(--md-primary);color:var(--md-on-primary)}
+.btn-filled:hover{box-shadow:var(--el1);background:#005565}
+
+.btn-sm{height:32px;padding:0 12px;font-size:12px}
+.btn-sm .icon{font-size:16px}
+
+/* Effet de vague au clic (ripple) */
+.ripple{position:absolute;border-radius:50%;transform:scale(0);
+  animation:ripple .5s ease-out;background:currentColor;opacity:.22;pointer-events:none}
+@keyframes ripple{to{transform:scale(2.6);opacity:0}}
+
+/* ---------- Boutons segmentés ---------- */
+.segmented{display:inline-flex;border:1px solid var(--md-outline);border-radius:var(--r-full);overflow:hidden;height:40px}
+.segmented button{
+  position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;gap:6px;
+  padding:0 16px;font-size:14px;font-weight:500;
+  color:var(--md-on-surface);background:transparent;transition:background .15s;
+}
+.segmented button + button{border-left:1px solid var(--md-outline)}
+.segmented button:hover{background:color-mix(in srgb,var(--md-on-surface) 8%,transparent)}
+.segmented button.on{background:var(--md-secondary-container);color:var(--md-on-secondary-container)}
+.segmented button .icon{font-size:18px;opacity:0}
+.segmented button.on .icon{opacity:1}
+
+/* ---------- Chips ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{
+  position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;gap:6px;
+  height:32px;padding:0 12px;border-radius:var(--r-xs);
+  border:1px solid var(--md-outline-variant);background:transparent;
+  font-size:13px;font-weight:500;color:var(--md-on-surface-variant);
+  transition:background .15s,border-color .15s;
+}
+.chip:hover{background:color-mix(in srgb,var(--md-on-surface) 8%,transparent)}
+.chip.on{background:var(--md-secondary-container);color:var(--md-on-secondary-container);border-color:transparent}
+.chip .icon{font-size:16px}
+
+/* ---------- Cartes ---------- */
+.card{
+  background:var(--md-surface-1);border-radius:var(--r-sm);
+  box-shadow:var(--el1);overflow:hidden;
+}
+.card-outlined{background:var(--md-surface);border:1px solid var(--md-outline-variant);box-shadow:none}
+
+/* ---------- Bandeau de fraîcheur ---------- */
+.banner{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  padding:12px 16px;border-radius:var(--r-sm);margin-bottom:20px;
+  background:var(--md-surface-2);font-size:13px;
+}
+.banner .icon{font-size:18px}
+.banner.warn{background:var(--stc-nudge);color:var(--st-nudge)}
+.banner.err{background:var(--stc-dropped);color:var(--st-dropped)}
+
+/* ---------- Compteurs (cartes-statistiques) ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:12px;margin-bottom:14px}
+.stat{
+  position:relative;overflow:hidden;text-align:left;
+  padding:14px 16px;border-radius:var(--r-md);
+  background:var(--md-surface-1);box-shadow:var(--el1);
+  transition:box-shadow .2s,transform .1s;
+}
+.stat:hover{box-shadow:var(--el2)}
+.stat:active{transform:scale(.985)}
+.stat .n{font-size:26px;font-weight:500;line-height:1.15}
+.stat .l{font-size:11px;font-weight:500;letter-spacing:.4px;margin-top:4px;
+  color:var(--md-on-surface-variant);line-height:1.25}
+.stat .d{display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:500;margin-top:5px}
+.stat .d .icon{font-size:14px}
+
+/* ---------- Répartition ---------- */
+.distrib{display:flex;height:10px;border-radius:var(--r-full);overflow:hidden;
+  background:var(--md-surface-3);margin-bottom:24px;gap:2px}
+.distrib div{height:100%;border-radius:2px}
+
+/* ---------- Champs de saisie ---------- */
+.field{position:relative;display:inline-flex;align-items:center;flex:1;min-width:200px}
+.field .icon{position:absolute;left:12px;color:var(--md-on-surface-variant);pointer-events:none}
+.field input{
+  width:100%;height:40px;padding:0 14px 0 42px;
+  border:1px solid var(--md-outline);border-radius:var(--r-full);
+  background:transparent;color:var(--md-on-surface);
+  font-family:inherit;font-size:14px;
+}
+.field input:focus{outline:2px solid var(--md-primary);outline-offset:-2px;border-color:transparent}
+
+select{
+  height:40px;padding:0 12px;border:1px solid var(--md-outline);border-radius:var(--r-xs);
+  background:transparent;color:var(--md-on-surface);font-family:inherit;font-size:13px;cursor:pointer;
+}
+select:focus{outline:2px solid var(--md-primary);outline-offset:-2px}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+
+/* ---------- Groupes ---------- */
+.group{margin-bottom:16px}
+.group-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:16px}
+.group-head .txt{flex:1;min-width:230px}
+.group-head .ttl{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:500}
+.group-head .why{font-size:12px;color:var(--md-on-surface-variant);margin-top:3px;line-height:1.4}
+.group-head .count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:24px;height:24px;padding:0 7px;border-radius:var(--r-full);
+  font-size:12px;font-weight:500;
+}
+.divider{height:1px;background:var(--md-outline-variant);opacity:.6}
+
+/* ---------- Lignes (list items Material) ---------- */
+.row{
+  position:relative;overflow:hidden;
+  display:flex;gap:12px;align-items:center;
+  padding:10px 16px;min-height:56px;cursor:pointer;
+  transition:background .12s;
+}
+.row:hover{background:color-mix(in srgb,var(--md-on-surface) 5%,transparent)}
+.row + .row{border-top:1px solid color-mix(in srgb,var(--md-outline-variant) 55%,transparent)}
+.row.done{opacity:.42}
+
+.check{
+  display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  color:var(--md-on-surface-variant);transition:background .12s;
+}
+.check:hover{background:color-mix(in srgb,var(--md-primary) 10%,transparent);color:var(--md-primary)}
+.check.on{color:var(--md-secondary)}
+
+.who{width:196px;flex-shrink:0;overflow:hidden}
+.who .n{font-size:14px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who .c{font-size:12px;color:var(--md-on-surface-variant);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  height:24px;padding:0 8px;border-radius:var(--r-xs);
+  font-size:11px;font-weight:500;white-space:nowrap;
+}
+.badge .icon{font-size:14px}
+
+/* Indicateur de progression linéaire Material */
+.progress{flex:1;min-width:56px;height:6px;border-radius:var(--r-full);
+  background:var(--md-surface-3);overflow:hidden;position:relative}
+.progress .bar{height:100%;border-radius:var(--r-full);transition:width .3s}
+.progress .ghost{position:absolute;top:0;height:100%;background:rgba(0,0,0,.10)}
+
+.pct{width:42px;text-align:right;font-size:14px;font-weight:500}
+.delta{width:48px;text-align:right;font-size:12px;font-weight:500;white-space:nowrap}
+.meta{width:124px;text-align:right;font-size:12px;color:var(--md-on-surface-variant);white-space:nowrap}
+
+/* ---------- Fiche apprenant ---------- */
+.detail{background:var(--md-surface-2);padding:16px}
+.detail h4{font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;
+  color:var(--md-on-surface-variant);margin-bottom:10px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.dbox{background:var(--md-surface);border-radius:var(--r-xs);padding:10px 12px}
+.dbox .k{font-size:10px;font-weight:500;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--md-on-surface-variant)}
+.dbox .v{font-size:14px;font-weight:500;margin-top:3px}
+.spark{width:100%;height:44px;display:block}
+
+/* ---------- Réglages ---------- */
+.settings{padding:20px;margin-bottom:20px}
+.setting{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:16px}
+.setting:last-child{margin-bottom:0}
+.setting label{flex:1;min-width:250px;font-size:13px;color:var(--md-on-surface-variant)}
+.setting label b{color:var(--md-on-surface);font-weight:500}
+.setting .val{min-width:52px;text-align:right;font-size:14px;font-weight:500;color:var(--md-primary)}
+
+input[type=range]{flex:1;min-width:140px;-webkit-appearance:none;appearance:none;
+  height:16px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--md-surface-3)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--md-primary);margin-top:-7px;box-shadow:var(--el1)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--md-surface-3)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border:none;border-radius:50%;
+  background:var(--md-primary);box-shadow:var(--el1)}
+
+/* ---------- Snackbar ---------- */
+.snackbar{
+  position:fixed;left:50%;bottom:24px;transform:translate(-50%,80px);
+  display:flex;align-items:center;gap:12px;
+  min-height:48px;padding:0 16px;border-radius:var(--r-xs);
+  background:#2E3335;color:#EFF1F2;font-size:14px;
+  box-shadow:var(--el3);opacity:0;transition:all .25s cubic-bezier(.2,0,0,1);
+  pointer-events:none;z-index:99;max-width:90vw;
+}
+.snackbar.on{opacity:1;transform:translate(-50%,0)}
+.snackbar .icon{font-size:18px}
+
+/* ---------- États vides ---------- */
+.empty{padding:56px 24px;text-align:center;color:var(--md-on-surface-variant)}
+.empty .icon{font-size:44px;opacity:.4;display:block;margin:0 auto 12px}
+.empty .t{font-size:16px;color:var(--md-on-surface);margin-bottom:6px}
+.empty .s{font-size:13px;max-width:44ch;margin:0 auto;line-height:1.6}
+
+/* ---------- Zone de dépôt (mode manuel uniquement) ---------- */
+#drop{
+  padding:32px;text-align:center;cursor:pointer;margin-bottom:20px;
+  border:2px dashed var(--md-outline-variant);border-radius:var(--r-md);
+  background:var(--md-surface-1);transition:.15s;
+}
+#drop:hover,#drop.over{border-color:var(--md-primary);background:var(--md-surface-2)}
+#drop .icon{font-size:32px;color:var(--md-primary);display:block;margin:0 auto 8px}
+
+.note{padding:16px;margin-top:24px;font-size:12px;line-height:1.7;
+  color:var(--md-on-surface-variant)}
+.note b{color:var(--md-on-surface);font-weight:500}
+
+@media print{
+  body{padding:0;background:#fff}
+  .toolbar,.actions,.check,.settings,.snackbar,#drop,.banner{display:none!important}
+  .card,.stat{box-shadow:none;border:1px solid var(--md-outline-variant)}
+  .group{break-inside:avoid}
+  .row{cursor:default}
+}
+@media(max-width:820px){
+  .meta,.delta{display:none}
+  .who{width:150px}
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <div class="brand">tr<span class="ia">AI</span>ned<span class="sub">manager</span></div>
+      <div class="overline">Suivi des apprenants</div>
+      <h1 class="headline">Qui avance, qui décroche</h1>
+      <div class="body-sm" id="summaryLine" style="margin-top:6px">Chargement…</div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-outlined" id="btnSettings"><span class="icon">tune</span>Réglages</button>
+      <button class="btn btn-outlined" id="btnPrint"><span class="icon">print</span>Imprimer</button>
+    </div>
+  </div>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <div id="settings" class="card settings hidden">
+    <div class="setting">
+      <label><b>Décroché</b> — plus aucune connexion depuis plus de…</label>
+      <input type="range" id="thDrop" min="15" max="120" step="5">
+      <span class="val" id="thDropV"></span>
+    </div>
+    <div class="setting">
+      <label><b>À relancer</b> — silencieux depuis plus de…</label>
+      <input type="range" id="thNudge" min="7" max="60" step="1">
+      <span class="val" id="thNudgeV"></span>
+    </div>
+    <div class="setting">
+      <label><b>À un doigt de finir</b> — un décroché au-delà de…</label>
+      <input type="range" id="thGold" min="30" max="95" step="5">
+      <span class="val" id="thGoldV"></span>
+    </div>
+    <div class="setting">
+      <label><b>Terminé</b> — à partir de…</label>
+      <input type="range" id="thDone" min="80" max="100" step="1">
+      <span class="val" id="thDoneV"></span>
+    </div>
+    <div class="divider" style="margin:6px 0 16px"></div>
+    <div class="setting">
+      <label>Seuils et suivi des relances sont mémorisés <b>dans ce navigateur uniquement</b> — ils ne sont pas partagés entre plusieurs postes.</label>
+      <button class="btn btn-text btn-sm" id="btnResetTh"><span class="icon">restart_alt</span>Seuils par défaut</button>
+      <button class="btn btn-text btn-sm" id="btnResetRel"><span class="icon">restart_alt</span>Réinitialiser le suivi</button>
+    </div>
+  </div>
+
+  <div id="dropHost" class="hidden"></div>
+
+  <div class="stats" id="stats"></div>
+  <div class="distrib" id="distrib"></div>
+
+  <div class="toolbar" id="toolbar">
+    <div class="segmented" id="views">
+      <button data-view="relances" class="on"><span class="icon">check</span>Relances à faire</button>
+      <button data-view="liste"><span class="icon">check</span>Tout le monde</button>
+      <button data-view="formations"><span class="icon">check</span>Par formation</button>
+    </div>
+    <div class="field">
+      <span class="icon">search</span>
+      <input type="search" id="search" placeholder="Chercher un nom ou un e-mail">
+    </div>
+    <select id="fCourse"></select>
+    <select id="fTag"></select>
+    <select id="sort">
+      <option value="urgence">Trier : urgence</option>
+      <option value="pct">Trier : avancement</option>
+      <option value="inactive">Trier : inactivité</option>
+      <option value="name">Trier : nom</option>
+    </select>
+    <button class="btn btn-text btn-sm" id="btnClear"><span class="icon">filter_alt_off</span>Tout afficher</button>
+  </div>
+
+  <div id="content"></div>
+  <div class="card card-outlined note" id="methodo"></div>
+</div>
+
+<input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple class="hidden">
+<div class="snackbar" id="snackbar"></div>
+
+<script>
+/* ==================================================================
+   Réglages, mémorisés dans le navigateur
+   ================================================================== */
+var DEFAULTS = { drop:45, nudge:14, gold:60, done:95 };
+var LS_TH = "tm.seuils", LS_REL = "tm.relances";
+
+function load(k, def){
+  try { var v = JSON.parse(localStorage.getItem(k)); return v ? Object.assign({}, def, v) : Object.assign({}, def); }
+  catch(e){ return Object.assign({}, def); }
+}
+function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+
+var TH  = load(LS_TH, DEFAULTS);
+var REL = load(LS_REL, {});
+
+/* ==================================================================
+   Statuts
+   ================================================================== */
+var S = {
+  gold:    { label:"À un doigt de finir", c:"var(--st-gold)",    bg:"var(--stc-gold)",    ico:"workspace_premium" },
+  dropped: { label:"Décroché",            c:"var(--st-dropped)", bg:"var(--stc-dropped)", ico:"trending_down" },
+  never:   { label:"Jamais démarré",      c:"var(--st-never)",   bg:"var(--stc-never)",   ico:"lock_open" },
+  nudge:   { label:"À relancer",          c:"var(--st-nudge)",   bg:"var(--stc-nudge)",   ico:"notifications_active" },
+  active:  { label:"Actif",               c:"var(--st-active)",  bg:"var(--stc-active)",  ico:"bolt" },
+  done:    { label:"Terminé",             c:"var(--st-done)",    bg:"var(--stc-done)",    ico:"task_alt" },
+  unknown: { label:"Statut inconnu",      c:"var(--st-unknown)", bg:"var(--stc-unknown)", ico:"help" }
+};
+var ORDER    = ["gold","dropped","never","nudge","active","done","unknown"];
+var RELANCES = ["gold","dropped","never","nudge"];
+
+function why(k){
+  return {
+    gold:    "Plus de " + TH.gold + " % du parcours fait, mais plus aucune connexion depuis longtemps. Les relances les plus rentables : quelques heures les séparent du certificat.",
+    dropped: "Ont commencé, puis ne se sont plus reconnectés depuis plus de " + TH.drop + " jours.",
+    never:   "Inscrits, mais n'ont jamais ouvert la formation une seule fois. Problème d'activation, pas de motivation.",
+    nudge:   "Silencieux depuis " + TH.nudge + " à " + TH.drop + " jours. Un rappel peut suffire à les remettre en route.",
+    active:  "Connectés il y a moins de " + TH.nudge + " jours.",
+    done:    "Parcours achevé.",
+    unknown: "E-mail absent de l'ExportUsers : dernière connexion inconnue."
+  }[k];
+}
+function statusOf(pct, started, inactive){
+  if (pct >= TH.done) return "done";
+  if (!started) return "never";
+  if (inactive === null) return "unknown";
+  if (inactive <= TH.nudge) return "active";
+  if (inactive <= TH.drop)  return "nudge";
+  return pct >= TH.gold ? "gold" : "dropped";
+}
+
+/* ==================================================================
+   Utilitaires
+   ================================================================== */
+function clean(v){ var s = (v === null || v === undefined) ? "" : String(v).trim(); return (s === "-" || s === "") ? null : s; }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function rkey(r){ return r.email + "||" + r.course; }
+function ico(n, cls){ return '<span class="icon' + (cls ? " " + cls : "") + '">' + n + '</span>'; }
+
+function parseAct(v){
+  var m = String(v === null || v === undefined ? "" : v).match(/(\d+)\s*\/\s*(\d+)/);
+  if (!m) return null;
+  var fait = +m[1], total = +m[2];
+  return total ? { fait:fait, total:total } : null;
+}
+function frDate(v){
+  var s = clean(v);
+  if (!s) return null;
+  var m = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  return m ? m[3] + "-" + m[2] + "-" + m[1] : null;
+}
+function daysSince(iso){
+  if (!iso) return null;
+  var d = new Date(iso + "T00:00:00");
+  return isNaN(d.getTime()) ? null : Math.max(0, Math.round((new Date() - d) / 864e5));
+}
+function toMin(v){
+  var s = clean(v);
+  if (!s) return 0;
+  var p = s.split(":").map(function(x){ return parseInt(x, 10) || 0; });
+  return p.length === 3 ? p[0] * 60 + p[1] : 0;
+}
+function fmtMin(m){
+  if (!m) return "0 min";
+  var h = Math.floor(m / 60);
+  return h ? h + " h " + String(m % 60).padStart(2, "0") : m + " min";
+}
+function fmtDate(iso){
+  if (!iso) return "—";
+  var p = iso.split("-");
+  return p[2] + "/" + p[1] + "/" + p[0];
+}
+function snack(msg, icone){
+  var s = document.getElementById("snackbar");
+  s.innerHTML = ico(icone || "check_circle") + "<span>" + esc(msg) + "</span>";
+  s.classList.add("on");
+  clearTimeout(s._t);
+  s._t = setTimeout(function(){ s.classList.remove("on"); }, 2600);
+}
+
+/* Effet de vague au clic, sur tout élément interactif */
+function vague(e){
+  var el = e.currentTarget;
+  var r = el.getBoundingClientRect();
+  var d = Math.max(r.width, r.height);
+  var v = document.createElement("span");
+  v.className = "ripple";
+  v.style.width = v.style.height = d + "px";
+  v.style.left = (e.clientX - r.left - d / 2) + "px";
+  v.style.top  = (e.clientY - r.top  - d / 2) + "px";
+  el.appendChild(v);
+  setTimeout(function(){ v.remove(); }, 500);
+}
+function ondulant(selecteur){
+  document.querySelectorAll(selecteur).forEach(function(el){
+    el.addEventListener("click", vague);
+  });
+}
+
+/* ==================================================================
+   État
+   ================================================================== */
+var SNAPS = [], VIS = [];
+var view = "relances", filter = "all", search = "", fCourse = "all", fTag = "all", sort = "urgence";
+var open = null;
+var MODE_MANUEL = new URLSearchParams(location.search).has("manuel");
+
+/* ==================================================================
+   Chargement automatique
+   ================================================================== */
+function boot(){
+  fetch("data.json?" + Date.now())
+    .then(function(r){ if (!r.ok) throw new Error(); return r.json(); })
+    .then(function(d){
+      if (!d.snapshots || !d.snapshots.length) throw new Error();
+      SNAPS = d.snapshots.slice().sort(function(a, b){ return a.date.localeCompare(b.date); });
+      render();
+    })
+    .catch(function(){ render(); });
+}
+
+/* ==================================================================
+   Mode manuel — porte de service (?manuel=1)
+   ================================================================== */
+function chargerSheetJS(){
+  if (window.XLSX) return Promise.resolve();
+  return new Promise(function(ok, ko){
+    var s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload = ok;
+    s.onerror = function(){ ko(new Error("SheetJS injoignable")); };
+    document.head.appendChild(s);
+  });
+}
+
+function handleFiles(list){
+  var files = Array.prototype.slice.call(list);
+  var records = [], activity = {};
+
+  chargerSheetJS().then(function(){
+    return files.reduce(function(p, file){
+      return p.then(function(){
+        return file.arrayBuffer().then(function(buf){
+          var wb;
+          try { wb = XLSX.read(buf, { type:"array" }); } catch(e){ return; }
+          var lower = wb.SheetNames.map(function(s){ return s.toLowerCase(); });
+          if (lower.indexOf("progress status") >= 0 || lower.indexOf("time spent") >= 0) return;
+
+          wb.SheetNames.forEach(function(sheet){
+            var rows = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { defval:"" });
+            if (!rows.length) return;
+            var cols = Object.keys(rows[0]);
+
+            if (cols.indexOf("Last activity") >= 0 && cols.indexOf("Email") >= 0){
+              rows.forEach(function(r){
+                var e = clean(r["Email"]), d = frDate(r["Last activity"]);
+                if (e && d) activity[e.toLowerCase()] = d;
+              });
+              return;
+            }
+            if (cols.indexOf("Learning Activities") >= 0 && cols.indexOf("Email") >= 0){
+              rows.forEach(function(r){
+                var email = clean(r["Email"]), act = parseAct(r["Learning Activities"]);
+                if (!email || !act) return;
+                records.push({
+                  email: email.toLowerCase(),
+                  name: clean(r["User Name"]) || email,
+                  course: sheet,
+                  fait: act.fait, total: act.total,
+                  started: !!clean(r["Course Start Date"]),
+                  minutes: toMin(r["Time spent in course"]),
+                  tags: String(r["Tags"] || "").split(",").map(function(t){ return t.trim(); })
+                          .filter(function(t){ return t && t.indexOf("cf_") !== 0; })
+                });
+              });
+            }
+          });
+        });
+      });
+    }, Promise.resolve());
+  }).then(function(){
+    if (!records.length){ snack("Aucun fichier d'avancement reconnu", "error"); return; }
+    records.forEach(function(r){ r.last_activity = activity[r.email] || null; });
+    var today = new Date().toISOString().slice(0, 10);
+    SNAPS = SNAPS.filter(function(s){ return s.date !== today; });
+    SNAPS.push({ date:today, records:records });
+    SNAPS.sort(function(a, b){ return a.date.localeCompare(b.date); });
+    document.getElementById("dropHost").classList.add("hidden");
+    render();
+    snack(records.length + " inscriptions chargées");
+  }).catch(function(){
+    snack("Lecture impossible", "error");
+  });
+}
+
+/* ==================================================================
+   Calcul
+   ================================================================== */
+function build(){
+  if (!SNAPS.length) return null;
+
+  var cur  = SNAPS[SNAPS.length - 1];
+  var prev = SNAPS.length > 1 ? SNAPS[SNAPS.length - 2] : null;
+
+  var prevMap = {};
+  if (prev) prev.records.forEach(function(r){ prevMap[rkey(r)] = r; });
+
+  var records = cur.records.map(function(r){
+    var pct = Math.round(r.fait / r.total * 100);
+    var inactive = daysSince(r.last_activity);
+    var p = prevMap[rkey(r)];
+    var prevPct = p ? Math.round(p.fait / p.total * 100) : null;
+    var o = {};
+    for (var k in r) o[k] = r[k];
+    o.pct = pct;
+    o.inactive = inactive;
+    o.prevPct = prevPct;
+    o.delta = (prevPct === null) ? null : pct - prevPct;
+    o.status = statusOf(pct, r.started, inactive);
+    o.relance = REL[rkey(r)] || null;
+    return o;
+  });
+
+  var counts = {}, prevCounts = {};
+  ORDER.forEach(function(k){ counts[k] = records.filter(function(r){ return r.status === k; }).length; });
+  if (prev){
+    prev.records.forEach(function(r){
+      var pct = Math.round(r.fait / r.total * 100);
+      var k = statusOf(pct, r.started, daysSince(r.last_activity));
+      prevCounts[k] = (prevCounts[k] || 0) + 1;
+    });
+  }
+
+  var courses = [], tags = [], emails = {};
+  records.forEach(function(r){
+    if (courses.indexOf(r.course) < 0) courses.push(r.course);
+    (r.tags || []).forEach(function(t){ if (tags.indexOf(t) < 0) tags.push(t); });
+    emails[r.email] = 1;
+  });
+  courses.sort(); tags.sort();
+
+  return {
+    date: cur.date,
+    prevDate: prev ? prev.date : null,
+    records: records, counts: counts, prevCounts: prevCounts,
+    hasActivity: records.some(function(r){ return !!r.last_activity; }),
+    people: Object.keys(emails).length,
+    courses: courses, tags: tags,
+    avg: Math.round(records.reduce(function(a, b){ return a + b.pct; }, 0) / records.length)
+  };
+}
+
+function history(r){
+  return SNAPS.map(function(s){
+    var m = null;
+    for (var i = 0; i < s.records.length; i++){
+      if (s.records[i].email === r.email && s.records[i].course === r.course){ m = s.records[i]; break; }
+    }
+    return { date:s.date, pct: m ? Math.round(m.fait / m.total * 100) : null };
+  }).filter(function(p){ return p.pct !== null; });
+}
+
+/* ==================================================================
+   Rendu
+   ================================================================== */
+function rowHTML(r){
+  var s = S[r.status];
+  var meta = !r.started ? "jamais ouverte"
+           : (r.inactive === null ? "connexion inconnue" : "vu il y a " + r.inactive + " j");
+  var ghost = (r.prevPct !== null && r.prevPct < r.pct)
+    ? '<div class="ghost" style="left:' + r.prevPct + '%;width:' + (r.pct - r.prevPct) + '%"></div>' : "";
+  var k = esc(rkey(r));
+
+  var delta = "";
+  if (r.delta) {
+    delta = '<span style="color:' + (r.delta > 0 ? "var(--st-done)" : "var(--st-dropped)") + '">' +
+            (r.delta > 0 ? "+" : "") + r.delta + "</span>";
+  }
+
+  var html =
+    '<div class="row' + (r.relance ? " done" : "") + '" data-k="' + k + '">' +
+      '<div class="check' + (r.relance ? " on" : "") + '" data-check="' + k + '" title="' +
+        (r.relance ? "Relancé le " + fmtDate(r.relance) : "Marquer comme relancé") + '">' +
+        ico(r.relance ? "check_circle" : "radio_button_unchecked", r.relance ? "fill" : "") +
+      '</div>' +
+      '<div class="who"><div class="n" title="' + esc(r.email) + '">' + esc(r.name) + '</div>' +
+        '<div class="c">' + esc(r.course) + '</div></div>' +
+      '<span class="badge" style="background:' + s.bg + ';color:' + s.c + '">' + ico(s.ico) + s.label + '</span>' +
+      '<div class="progress"><div class="bar" style="width:' + Math.max(2, r.pct) + '%;background:' + s.c + '"></div>' +
+        ghost + '</div>' +
+      '<div class="pct" style="color:' + s.c + '">' + r.pct + '%</div>' +
+      '<div class="delta">' + delta + '</div>' +
+      '<div class="meta">' + meta + '</div>' +
+    '</div>';
+
+  if (open === rkey(r)) html += detailHTML(r);
+  return html;
+}
+
+function dbox(k, v){ return '<div class="dbox"><div class="k">' + k + '</div><div class="v">' + esc(v) + '</div></div>'; }
+
+function detailHTML(r){
+  var h = history(r);
+  var s = S[r.status];
+  var courbe = '<div class="body-sm">Un seul relevé pour l\'instant — la courbe apparaîtra dès la prochaine mise à jour.</div>';
+
+  if (h.length > 1){
+    var W = 520, H = 44;
+    var pts = h.map(function(p, i){
+      return ((i / (h.length - 1)) * W).toFixed(1) + "," + (H - (p.pct / 100) * H).toFixed(1);
+    }).join(" ");
+    var aire = "0," + H + " " + pts + " " + W + "," + H;
+    courbe =
+      '<svg class="spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+        '<polygon points="' + aire + '" fill="' + s.bg + '" opacity=".7"/>' +
+        '<polyline points="' + pts + '" fill="none" stroke="' + s.c + '" stroke-width="2" ' +
+          'vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '</svg>' +
+      '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--md-on-surface-variant);margin-top:4px">' +
+        '<span>' + fmtDate(h[0].date) + " — " + h[0].pct + '%</span>' +
+        '<span>' + fmtDate(h[h.length - 1].date) + " — " + h[h.length - 1].pct + '%</span>' +
+      '</div>';
+  }
+
+  return '<div class="detail">' +
+    '<div class="dgrid">' +
+      dbox("Avancement", r.fait + " / " + r.total + " activités") +
+      dbox("Temps passé", fmtMin(r.minutes)) +
+      dbox("Dernière connexion", r.last_activity ? fmtDate(r.last_activity) + " (" + r.inactive + " j)" : "inconnue") +
+      dbox("Relancé", r.relance ? "le " + fmtDate(r.relance) : "non") +
+      ((r.tags && r.tags.length) ? dbox("Étiquettes", r.tags.join(", ")) : "") +
+    '</div>' +
+    '<h4>Évolution</h4>' + courbe +
+    '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">' +
+      '<a class="btn btn-tonal btn-sm" href="mailto:' + esc(r.email) + '">' + ico("mail") + 'Écrire à ' + esc(r.name) + '</a>' +
+      '<button class="btn btn-text btn-sm" data-copy="' + esc(r.email) + '">' + ico("content_copy") + 'Copier l\'e-mail</button>' +
+    '</div></div>';
+}
+
+function apply(rows){
+  return rows.filter(function(r){
+    if (fCourse !== "all" && r.course !== fCourse) return false;
+    if (fTag !== "all" && (r.tags || []).indexOf(fTag) < 0) return false;
+    if (search && r.name.toLowerCase().indexOf(search) < 0 && r.email.indexOf(search) < 0) return false;
+    return true;
+  });
+}
+function sortRows(rows){
+  var cmp = {
+    urgence:  function(a, b){ return ORDER.indexOf(a.status) - ORDER.indexOf(b.status) || (b.inactive || 0) - (a.inactive || 0); },
+    pct:      function(a, b){ return a.pct - b.pct; },
+    inactive: function(a, b){ return (b.inactive || 0) - (a.inactive || 0); },
+    name:     function(a, b){ return a.name.localeCompare(b.name); }
+  }[sort];
+  return rows.slice().sort(function(a, b){
+    return (a.relance ? 1 : 0) - (b.relance ? 1 : 0) || cmp(a, b);
+  });
+}
+function fillSelect(id, values, allLabel, cur){
+  var el = document.getElementById(id);
+  el.innerHTML = '<option value="all">' + allLabel + '</option>' +
+    values.map(function(v){
+      return '<option value="' + esc(v) + '"' + (v === cur ? " selected" : "") + '>' + esc(v) + '</option>';
+    }).join("");
+  el.classList.toggle("hidden", !values.length);
+}
+
+function render(){
+  var M = build();
+  var content = document.getElementById("content");
+
+  /* --- aucune donnée --- */
+  if (!M){
+    document.getElementById("summaryLine").textContent = "Données indisponibles";
+    document.getElementById("stats").innerHTML = "";
+    document.getElementById("distrib").innerHTML = "";
+    document.getElementById("methodo").innerHTML = "";
+    document.getElementById("toolbar").classList.add("hidden");
+    document.getElementById("banner").classList.add("hidden");
+
+    content.innerHTML =
+      '<div class="card"><div class="empty">' +
+        ico("cloud_off") +
+        '<div class="t">Les données n\'ont pas pu être chargées</div>' +
+        '<div class="s">Le dashboard se met à jour tout seul chaque lundi. ' +
+        'Si ce message persiste, la mise à jour automatique est en panne — prévenez Johan.</div>' +
+      '</div></div>';
+
+    if (MODE_MANUEL) showDrop();
+    return;
+  }
+
+  document.getElementById("toolbar").classList.remove("hidden");
+
+  var jours = daysSince(M.date);
+  document.getElementById("summaryLine").textContent =
+    M.people + " apprenants · " + M.courses.length + " formations · " + M.records.length +
+    " inscriptions · " + M.avg + " % d'avancement moyen";
+
+  /* --- fraîcheur --- */
+  var frais = jours !== null && jours <= 8;
+  var banner = document.getElementById("banner");
+  banner.className = "banner" + (frais ? "" : " warn");
+  banner.innerHTML =
+    ico(frais ? "cloud_done" : "cloud_alert") +
+    '<span>Données du <b>' + fmtDate(M.date) + '</b>' +
+      (jours === 0 ? " (aujourd'hui)" : " — il y a " + jours + " jour" + (jours > 1 ? "s" : "")) + '</span>' +
+    (M.prevDate ? '<span style="opacity:.7">· comparé au ' + fmtDate(M.prevDate) + '</span>' : '') +
+    '<span style="opacity:.7">· ' + SNAPS.length + ' relevé' + (SNAPS.length > 1 ? "s" : "") + '</span>' +
+    (frais ? '' : '<span><b>· la mise à jour semble en retard</b></span>');
+
+  if (!M.hasActivity){
+    banner.className = "banner err";
+    banner.innerHTML = ico("error") +
+      "<span>Le fichier <b>ExportUsers</b> manque : impossible de distinguer un décrochage d'une progression lente.</span>";
+  }
+
+  /* --- compteurs --- */
+  document.getElementById("stats").innerHTML = ORDER.filter(function(k){ return M.counts[k]; }).map(function(k){
+    var s = S[k], on = filter === k;
+    var d = (M.prevCounts[k] === undefined) ? 0 : M.counts[k] - M.prevCounts[k];
+    var couleurD = d > 0 ? "var(--st-dropped)" : "var(--st-done)";
+    return '<button class="stat" data-status="' + k + '"' +
+      (on ? ' style="background:' + s.bg + '"' : '') + '>' +
+      '<div class="n" style="color:' + s.c + '">' + M.counts[k] + '</div>' +
+      '<div class="l">' + s.label + '</div>' +
+      (d ? '<div class="d" style="color:' + couleurD + '">' +
+            ico(d > 0 ? "arrow_upward" : "arrow_downward") + Math.abs(d) + ' cette semaine</div>' : '') +
+      '</button>';
+  }).join("");
+
+  /* --- répartition --- */
+  document.getElementById("distrib").innerHTML = ORDER.filter(function(k){ return M.counts[k]; }).map(function(k){
+    return '<div title="' + S[k].label + ' : ' + M.counts[k] + '" style="width:' +
+      (M.counts[k] / M.records.length * 100) + '%;background:' + S[k].c + '"></div>';
+  }).join("");
+
+  fillSelect("fCourse", M.courses, "Toutes les formations", fCourse);
+  fillSelect("fTag", M.tags, "Toutes les étiquettes", fTag);
+
+  /* --- contenu --- */
+  if (view === "formations"){
+    content.innerHTML = M.courses.map(function(c){
+      var g = M.records.filter(function(r){ return r.course === c; });
+      var moy = Math.round(g.reduce(function(a, b){ return a + b.pct; }, 0) / g.length);
+      var todo = g.filter(function(r){ return RELANCES.indexOf(r.status) >= 0; }).length;
+      return '<div class="card group">' +
+        '<div class="group-head">' +
+          '<div class="txt"><div class="ttl">' + ico("school") + esc(c) + '</div>' +
+          '<div class="why">' + g.length + ' apprenants · ' + moy + ' % d\'avancement moyen · ' +
+            todo + ' à contacter</div></div>' +
+          '<button class="btn btn-tonal btn-sm" data-course="' + esc(c) + '">' + ico("arrow_forward") + 'Voir la liste</button>' +
+        '</div>' +
+        '<div style="padding:0 16px 18px"><div class="distrib" style="margin:0">' +
+          ORDER.filter(function(k){ return g.some(function(r){ return r.status === k; }); }).map(function(k){
+            var n = g.filter(function(r){ return r.status === k; }).length;
+            return '<div title="' + S[k].label + ' : ' + n + '" style="width:' + (n / g.length * 100) +
+              '%;background:' + S[k].c + '"></div>';
+          }).join("") +
+        '</div></div></div>';
+    }).join("");
+
+  } else if (view === "relances"){
+    var any = false;
+    content.innerHTML = RELANCES.map(function(k){
+      var s = S[k];
+      var g = sortRows(apply(M.records).filter(function(r){ return r.status === k; }));
+      if (!g.length) return "";
+      any = true;
+      var restants = g.filter(function(r){ return !r.relance; }).length;
+      return '<div class="card group">' +
+        '<div class="group-head" style="background:' + s.bg + '">' +
+          '<div class="txt">' +
+            '<div class="ttl" style="color:' + s.c + '">' + ico(s.ico) + s.label +
+              '<span class="count" style="background:' + s.c + ';color:#fff">' + g.length + '</span>' +
+              (restants < g.length ? '<span style="font-size:12px;font-weight:400;opacity:.75">' +
+                restants + ' restants</span>' : '') +
+            '</div>' +
+            '<div class="why" style="color:' + s.c + ';opacity:.9">' + why(k) + '</div>' +
+          '</div>' +
+          '<button class="btn btn-outlined btn-sm" data-mails="' + k + '">' + ico("content_copy") + 'Copier les e-mails</button>' +
+          '<button class="btn btn-outlined btn-sm" data-export="' + k + '">' + ico("download") + 'CSV</button>' +
+        '</div>' +
+        g.map(rowHTML).join("") + '</div>';
+    }).join("");
+
+    if (!any){
+      content.innerHTML = '<div class="card"><div class="empty">' + ico("celebration") +
+        '<div class="t">Personne à relancer</div>' +
+        '<div class="s">Soit tout le monde avance, soit les filtres sont trop restrictifs.</div></div></div>';
+    }
+
+  } else {
+    VIS = sortRows(apply(M.records).filter(function(r){ return filter === "all" || r.status === filter; }));
+    content.innerHTML = '<div class="card group">' +
+      '<div class="group-head">' +
+        '<div class="txt"><div class="ttl">' + ico("groups") + VIS.length + ' inscription' + (VIS.length > 1 ? "s" : "") + '</div></div>' +
+        '<button class="btn btn-outlined btn-sm" data-mails="_all">' + ico("content_copy") + 'Copier les e-mails</button>' +
+        '<button class="btn btn-outlined btn-sm" data-export="_all">' + ico("download") + 'CSV</button>' +
+      '</div>' +
+      (VIS.length ? VIS.map(rowHTML).join("")
+                  : '<div class="empty">' + ico("search_off") + '<div class="t">Aucun apprenant ne correspond</div></div>') +
+      '</div>';
+  }
+
+  /* --- branchements --- */
+  function groupe(k){
+    return k === "_all" ? VIS : sortRows(apply(M.records).filter(function(r){ return r.status === k; }));
+  }
+
+  document.querySelectorAll(".stat").forEach(function(b){
+    b.onclick = function(){
+      var k = b.dataset.status;
+      filter = (filter === k) ? "all" : k;
+      view = "liste"; open = null;
+      document.querySelectorAll("#views button").forEach(function(x){ x.classList.toggle("on", x.dataset.view === "liste"); });
+      render();
+    };
+  });
+  document.querySelectorAll("[data-course]").forEach(function(b){
+    b.onclick = function(e){
+      e.stopPropagation();
+      fCourse = b.dataset.course; view = "liste";
+      document.querySelectorAll("#views button").forEach(function(x){ x.classList.toggle("on", x.dataset.view === "liste"); });
+      render();
+    };
+  });
+  document.querySelectorAll("[data-export]").forEach(function(b){
+    b.onclick = function(e){
+      e.stopPropagation();
+      var k = b.dataset.export;
+      exportCsv(groupe(k), k === "_all" ? "apprenants" : S[k].label);
+    };
+  });
+  document.querySelectorAll("[data-mails]").forEach(function(b){
+    b.onclick = function(e){
+      e.stopPropagation();
+      var rows = groupe(b.dataset.mails).filter(function(r){ return !r.relance; });
+      var vus = {}, mails = [];
+      rows.forEach(function(r){ if (!vus[r.email]){ vus[r.email] = 1; mails.push(r.email); } });
+      if (!mails.length){ snack("Tout est déjà relancé", "done_all"); return; }
+      navigator.clipboard.writeText(mails.join("; "))
+        .then(function(){ snack(mails.length + " e-mail(s) copié(s)", "content_copy"); })
+        .catch(function(){ snack("Copie impossible dans ce navigateur", "error"); });
+    };
+  });
+  document.querySelectorAll("[data-check]").forEach(function(el){
+    el.onclick = function(e){
+      e.stopPropagation();
+      var k = el.dataset.check;
+      if (REL[k]) delete REL[k]; else REL[k] = new Date().toISOString().slice(0, 10);
+      save(LS_REL, REL);
+      render();
+    };
+  });
+  document.querySelectorAll(".row").forEach(function(el){
+    el.onclick = function(){ open = (open === el.dataset.k) ? null : el.dataset.k; render(); };
+  });
+  document.querySelectorAll("[data-copy]").forEach(function(b){
+    b.onclick = function(e){
+      e.stopPropagation();
+      navigator.clipboard.writeText(b.dataset.copy).then(function(){ snack("E-mail copié", "content_copy"); });
+    };
+  });
+
+  ondulant(".stat, .row, .btn, .check");
+
+  /* --- méthodo --- */
+  document.getElementById("methodo").innerHTML =
+    '<b>Comment les statuts sont calculés.</b> ' +
+    'L\'avancement vient de la colonne « Learning Activities » du summary (par ex. 4 / 346), converti en pourcentage. ' +
+    'La dernière connexion vient de la colonne « Last activity » de l\'ExportUsers, rapprochée par e-mail. ' +
+    '<b>Décroché</b> : plus de ' + TH.drop + ' jours sans connexion. ' +
+    '<b>À relancer</b> : entre ' + TH.nudge + ' et ' + TH.drop + ' jours. ' +
+    '<b>Actif</b> : moins de ' + TH.nudge + ' jours. ' +
+    '<b>Terminé</b> : au moins ' + TH.done + ' %. ' +
+    'Un décroché au-delà de ' + TH.gold + ' % est isolé à part. Ces seuils se règlent dans « Réglages ». ' +
+    'Le liseré gris sur les barres montre le chemin parcouru depuis le relevé précédent.';
+}
+
+/* ==================================================================
+   Export CSV
+   ================================================================== */
+function exportCsv(rows, label){
+  var head = ["Statut","Apprenant","Email","Formation","Avancement","Activités","Évolution","Inactif depuis (j)","Temps passé","Relancé le"];
+  var body = rows.map(function(r){
+    return [
+      S[r.status].label, r.name, r.email, r.course, r.pct + "%",
+      r.fait + "/" + r.total,
+      r.delta === null ? "" : (r.delta > 0 ? "+" : "") + r.delta + " pts",
+      r.inactive === null ? "inconnu" : r.inactive,
+      fmtMin(r.minutes),
+      r.relance ? fmtDate(r.relance) : ""
+    ];
+  });
+  var csv = [head].concat(body).map(function(l){
+    return l.map(function(x){ return '"' + String(x).replace(/"/g, '""') + '"'; }).join(";");
+  }).join("\n");
+  var blob = new Blob(["\uFEFF" + csv], { type:"text/csv;charset=utf-8;" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".csv";
+  a.click();
+  snack(rows.length + " ligne(s) exportée(s)", "download");
+}
+
+/* ==================================================================
+   Zone de dépôt (mode manuel)
+   ================================================================== */
+function showDrop(){
+  var host = document.getElementById("dropHost");
+  host.classList.remove("hidden");
+  host.innerHTML = '<div id="drop">' + ico("upload_file") +
+    '<div class="title-lg">Déposer les exports LearnWorlds</div>' +
+    '<div class="body-sm" style="margin-top:4px">Mode manuel — summary + ExportUsers, tous ensemble</div></div>';
+  var el = document.getElementById("drop");
+  el.onclick = function(){ document.getElementById("fileInput").click(); };
+  el.ondragover = function(e){ e.preventDefault(); el.classList.add("over"); };
+  el.ondragleave = function(){ el.classList.remove("over"); };
+  el.ondrop = function(e){ e.preventDefault(); el.classList.remove("over"); handleFiles(e.dataTransfer.files); };
+}
+
+/* ==================================================================
+   Branchements globaux
+   ================================================================== */
+document.getElementById("fileInput").onchange = function(e){ handleFiles(e.target.files); e.target.value = ""; };
+document.getElementById("btnPrint").onclick   = function(){ window.print(); };
+document.getElementById("btnSettings").onclick = function(){
+  document.getElementById("settings").classList.toggle("hidden");
+};
+document.querySelectorAll("#views button").forEach(function(b){
+  b.onclick = function(){
+    view = b.dataset.view; open = null;
+    document.querySelectorAll("#views button").forEach(function(x){ x.classList.toggle("on", x === b); });
+    render();
+  };
+});
+document.getElementById("search").oninput   = function(e){ search = e.target.value.toLowerCase().trim(); render(); };
+document.getElementById("fCourse").onchange = function(e){ fCourse = e.target.value; render(); };
+document.getElementById("fTag").onchange    = function(e){ fTag = e.target.value; render(); };
+document.getElementById("sort").onchange    = function(e){ sort = e.target.value; render(); };
+document.getElementById("btnClear").onclick = function(){
+  filter = "all"; fCourse = "all"; fTag = "all"; search = ""; open = null;
+  document.getElementById("search").value = "";
+  render();
+  snack("Filtres réinitialisés", "filter_alt_off");
+};
+
+var SLIDERS = [["thDrop","drop"," j"],["thNudge","nudge"," j"],["thGold","gold"," %"],["thDone","done"," %"]];
+function syncSliders(){
+  SLIDERS.forEach(function(s){
+    document.getElementById(s[0]).value = TH[s[1]];
+    document.getElementById(s[0] + "V").textContent = TH[s[1]] + s[2];
+  });
+}
+SLIDERS.forEach(function(s){
+  document.getElementById(s[0]).oninput = function(e){
+    TH[s[1]] = +e.target.value;
+    if (TH.nudge >= TH.drop) TH.nudge = TH.drop - 1;
+    save(LS_TH, TH); syncSliders(); render();
+  };
+});
+document.getElementById("btnResetTh").onclick = function(){
+  TH = Object.assign({}, DEFAULTS); save(LS_TH, TH); syncSliders(); render();
+  snack("Seuils remis par défaut", "restart_alt");
+};
+document.getElementById("btnResetRel").onclick = function(){
+  REL = {}; save(LS_REL, REL); render();
+  snack("Suivi des relances réinitialisé", "restart_alt");
+};
+
+ondulant(".btn, .segmented button");
+syncSliders();
+if (MODE_MANUEL) showDrop();
+boot();
+</script>
+</body>
+</html>
