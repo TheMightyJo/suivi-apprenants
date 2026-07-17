@@ -278,8 +278,10 @@ select:focus{outline:2px solid var(--md-primary);outline-offset:-2px}
 .badge{
   display:inline-flex;align-items:center;gap:4px;
   height:24px;padding:0 8px;border-radius:var(--r-xs);
-  font-size:11px;font-weight:500;white-space:nowrap;
+  font-size:11px;font-weight:500;white-space:nowrap;flex-shrink:0;
 }
+.row{flex-wrap:wrap}
+.who{flex-shrink:0}
 .badge .icon{font-size:14px}
 
 /* Indicateur de progression linéaire Material */
@@ -451,7 +453,6 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:none;border-ra
       <input type="search" id="search" placeholder="Chercher un nom ou un e-mail">
     </div>
     <select id="fCourse"></select>
-    <select id="fTag"></select>
     <select id="sort">
       <option value="urgence">Trier : urgence</option>
       <option value="pct">Trier : avancement</option>
@@ -510,7 +511,7 @@ var S = {
   done:    { label:"Terminé",             c:"var(--st-done)",    bg:"var(--stc-done)",    ico:"task_alt" },
   unknown: { label:"Statut inconnu",      c:"var(--st-unknown)", bg:"var(--stc-unknown)", ico:"help" }
 };
-var ORDER    = ["dropped","never","nudge","active","gold","done","unknown"];
+var ORDER    = ["dropped","never","nudge","active","done","unknown"];
 var RELANCES = ["dropped","never","nudge"];   // « gold » n'y est plus : c'est une étape, pas une relance
 
 function why(k){
@@ -527,14 +528,18 @@ function why(k){
 function statusOf(pct, started, inactive){
   if (pct >= TH.done) return "done";              // terminé
   if (!started) return "never";                   // jamais ouvert
-  // « À un doigt de finir » = une TRANCHE d'avancement (TH.gold à done exclu),
-  // quel que soit l'état de connexion. C'est une étape de progression, pas une
-  // alerte : quelqu'un à 94 % qui travaille encore y figure aussi.
-  if (pct >= TH.gold && pct < TH.done) return "gold";
   if (inactive === null) return "unknown";        // date de connexion inconnue
   if (inactive <= TH.nudge) return "active";      // connecté récemment
-  if (inactive <= TH.drop)  return "nudge";       // silencieux
-  return "dropped";                               // plus rien depuis longtemps
+  if (inactive <= TH.drop)  return "nudge";       // silencieux, pas encore décroché
+  return "dropped";                               // plus rien depuis plus de TH.drop jours
+}
+
+/* « À un doigt de finir » n'est PAS un statut, c'est un BADGE en plus :
+   il signale un avancement dans la dernière ligne droite (TH.gold à done exclu),
+   quel que soit le statut. Une personne peut donc être « Décroché » ET porter
+   ce badge — c'est même le cas le plus intéressant à relancer. */
+function estPresqueFini(pct){
+  return pct >= TH.gold && pct < TH.done;
 }
 
 /* ==================================================================
@@ -609,7 +614,7 @@ function ondulant(selecteur){
    État
    ================================================================== */
 var SNAPS = [], VIS = [];
-var view = "relances", filter = "all", search = "", fCourse = "all", fTag = "all", sort = "urgence";
+var view = "relances", filter = "all", search = "", fCourse = "all", sort = "urgence";
 var ligneOuverte = null;   // F009 : « open » masquait window.open
 var MODE_MANUEL = new URLSearchParams(location.search).has("manuel");
 
@@ -751,10 +756,11 @@ function build(){
    c'est ce qui permet de comparer des choses comparables. */
 function passeFiltres(r){
   if (fCourse !== "all" && r.course !== fCourse) return false;
-  if (fTag !== "all" && (r.tags || []).indexOf(fTag) < 0) return false;
   if (search && String(r.name).toLowerCase().indexOf(search) < 0 && r.email.indexOf(search) < 0) return false;
   return true;
 }
+/* Le filtre « presque » est transversal : il ne porte pas sur le statut
+   mais sur le badge d'avancement. Géré à part dans la vue liste. */
 
 function historique(r){   // F010 : « history » masquait window.history
   return SNAPS.map(function(s){
@@ -792,6 +798,9 @@ function rowHTML(r){
       '<div class="who"><div class="n" title="' + esc(r.email) + '">' + esc(r.name) + '</div>' +
         '<div class="c">' + esc(r.course) + '</div></div>' +
       '<span class="badge" style="background:' + s.bg + ';color:' + s.c + '">' + ico(s.ico) + s.label + '</span>' +
+      (estPresqueFini(r.pct) ? '<span class="badge" style="background:' + S.gold.bg + ';color:' + S.gold.c +
+        '" title="Entre ' + TH.gold + ' % et ' + (TH.done - 1) + ' % — dernière ligne droite">' +
+        ico(S.gold.ico) + 'À un doigt de finir</span>' : '') +
       '<div class="progress"><div class="bar" style="width:' + Math.max(2, r.pct) + '%;background:' + s.c + '"></div>' +
         ghost + '</div>' +
       '<div class="pct" style="color:' + s.c + '">' + r.pct + '%</div>' +
@@ -924,7 +933,7 @@ function render(){
      sinon cliquer sur « Décroché » mettrait tous les autres compteurs à zéro. */
   var scope     = M.records.filter(passeFiltres);
   var scopePrev = M.prevRecords.filter(passeFiltres);
-  var filtre    = (fCourse !== "all") || (fTag !== "all") || !!search;
+  var filtre    = (fCourse !== "all") || !!search;
 
   var counts = {}, prevCounts = {};
   ORDER.forEach(function(k){
@@ -950,7 +959,7 @@ function render(){
 
   document.getElementById("summaryLine").innerHTML =
     (filtre ? '<span class="scope-tag">' + ico("filter_alt") +
-              esc(fCourse !== "all" ? fCourse : (fTag !== "all" ? fTag : "« " + search + " »")) +
+              esc(fCourse !== "all" ? fCourse : "« " + search + " »") +
               '</span>' : '') + esc(ligne);
 
   /* --- fraîcheur --- */
@@ -972,6 +981,9 @@ function render(){
   }
 
   /* --- compteurs --- */
+  var nbPresque = scope.filter(function(r){ return estPresqueFini(r.pct); }).length;
+  var nbPresquePrev = scopePrev.filter(function(r){ return estPresqueFini(Math.round(r.fait/r.total*100)); }).length;
+
   document.getElementById("stats").innerHTML = ORDER.filter(function(k){ return counts[k]; }).map(function(k){
     var s = S[k], on = filter === k;
     var d = (prevCounts[k] === undefined) ? 0 : counts[k] - prevCounts[k];
@@ -983,7 +995,16 @@ function render(){
       (d ? '<div class="d" style="color:' + couleurD + '">' +
             ico(d > 0 ? "arrow_upward" : "arrow_downward") + Math.abs(d) + ' cette semaine</div>' : '') +
       '</button>';
-  }).join("");
+  }).join("") +
+  // carte transversale : un badge, pas un statut — d'où le filtre spécial "presque"
+  (nbPresque ? '<button class="stat" data-badge="presque"' +
+      (filter === "presque" ? ' style="background:' + S.gold.bg + '"' : '') + '>' +
+      '<div class="n" style="color:' + S.gold.c + '">' + nbPresque + '</div>' +
+      '<div class="l">À un doigt de finir</div>' +
+      ((nbPresque - nbPresquePrev) ? '<div class="d" style="color:var(--md-on-surface-variant)">' +
+        ico((nbPresque-nbPresquePrev) > 0 ? "arrow_upward" : "arrow_downward") +
+        Math.abs(nbPresque-nbPresquePrev) + ' cette semaine</div>' : '') +
+      '</button>' : "");
 
   /* --- répartition --- */
   document.getElementById("distrib").innerHTML = ORDER.filter(function(k){ return counts[k]; }).map(function(k){
@@ -992,7 +1013,6 @@ function render(){
   }).join("");
 
   fillSelect("fCourse", M.courses, "Toutes les formations", fCourse);
-  fillSelect("fTag", M.tags, "Toutes les étiquettes", fTag);
 
   /* --- contenu --- */
   if (view === "formations"){
@@ -1052,7 +1072,11 @@ function render(){
     }
 
   } else {
-    VIS = sortRows(M.records.filter(passeFiltres).filter(function(r){ return filter === "all" || r.status === filter; }));
+    VIS = sortRows(M.records.filter(passeFiltres).filter(function(r){
+      if (filter === "all") return true;
+      if (filter === "presque") return estPresqueFini(r.pct);
+      return r.status === filter;
+    }));
     var plieL = !!PLI._liste;
     content.innerHTML = '<div class="card group' + (plieL ? " plie" : "") + '">' +
       '<div class="group-head" data-plier="_liste">' +
@@ -1074,7 +1098,7 @@ function render(){
 
   document.querySelectorAll(".stat").forEach(function(b){
     b.onclick = function(){
-      var k = b.dataset.status;
+      var k = b.dataset.badge ? "presque" : b.dataset.status;
       filter = (filter === k) ? "all" : k;
       view = "liste"; ligneOuverte = null;
       document.querySelectorAll("#views button").forEach(function(x){ x.classList.toggle("on", x.dataset.view === "liste"); });
@@ -1241,10 +1265,9 @@ document.querySelectorAll("#views button").forEach(function(b){
 });
 document.getElementById("search").oninput   = function(e){ search = e.target.value.toLowerCase().trim(); render(); };
 document.getElementById("fCourse").onchange = function(e){ fCourse = e.target.value; render(); };
-document.getElementById("fTag").onchange    = function(e){ fTag = e.target.value; render(); };
 document.getElementById("sort").onchange    = function(e){ sort = e.target.value; render(); };
 document.getElementById("btnClear").onclick = function(){
-  filter = "all"; fCourse = "all"; fTag = "all"; search = ""; ligneOuverte = null;
+  filter = "all"; fCourse = "all"; search = ""; ligneOuverte = null;
   document.getElementById("search").value = "";
   render();
   snack("Filtres réinitialisés", "filter_alt_off");
