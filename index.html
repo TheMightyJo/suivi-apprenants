@@ -105,6 +105,13 @@ body{
 .topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px}
 .topbar .overline{font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;
   color:var(--md-primary);margin-bottom:4px}
+.scope-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  height:22px;padding:0 8px;margin-right:8px;border-radius:var(--r-full);
+  background:var(--md-secondary-container);color:var(--md-on-secondary-container);
+  font-size:12px;font-weight:500;vertical-align:middle;
+}
+.scope-tag .icon{font-size:14px}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
 
 /* ---------- Boutons Material ---------- */
@@ -226,7 +233,15 @@ select:focus{outline:2px solid var(--md-primary);outline-offset:-2px}
 
 /* ---------- Groupes ---------- */
 .group{margin-bottom:16px}
-.group-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:16px}
+.group-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:16px;cursor:pointer;
+  transition:background .12s;user-select:none}
+.group-head:hover{filter:brightness(.97)}
+.chevron{display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;transition:transform .2s}
+.chevron .icon{font-size:22px}
+.group.plie .chevron{transform:rotate(-90deg)}
+.group.plie .group-body{display:none}
+.group-body{overflow:hidden}
 .group-head .txt{flex:1;min-width:230px}
 .group-head .ttl{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:500}
 .group-head .why{font-size:12px;color:var(--md-on-surface-variant);margin-top:3px;line-height:1.4}
@@ -295,6 +310,17 @@ select:focus{outline:2px solid var(--md-primary);outline-offset:-2px}
 .setting label{flex:1;min-width:250px;font-size:13px;color:var(--md-on-surface-variant)}
 .setting label b{color:var(--md-on-surface);font-weight:500}
 .setting .val{min-width:52px;text-align:right;font-size:14px;font-weight:500;color:var(--md-primary)}
+.impact{
+  min-width:112px;text-align:right;font-size:12px;font-weight:500;
+  color:var(--md-on-surface-variant);transition:color .2s;
+}
+.impact b{font-size:15px;font-weight:500;transition:color .2s}
+.settings .meta-data{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border-radius:var(--r-xs);margin-bottom:18px;
+  background:var(--md-surface-2);font-size:12px;color:var(--md-on-surface-variant);
+}
+.settings .meta-data .icon{font-size:16px}
 
 input[type=range]{flex:1;min-width:140px;-webkit-appearance:none;appearance:none;
   height:16px;background:transparent;cursor:pointer}
@@ -338,7 +364,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:none;border-ra
 
 @media print{
   body{padding:0;background:#fff}
-  .toolbar,.actions,.check,.settings,.snackbar,#drop,.banner{display:none!important}
+  .toolbar,.actions,.check,.settings,.snackbar,#drop,.banner,.chevron{display:none!important}
+  .group.plie .group-body{display:block!important}
   .card,.stat{box-shadow:none;border:1px solid var(--md-outline-variant)}
   .group{break-inside:avoid}
   .row{cursor:default}
@@ -361,6 +388,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:none;border-ra
       <div class="body-sm" id="summaryLine" style="margin-top:6px">Chargement…</div>
     </div>
     <div class="actions">
+      <button class="btn btn-outlined" id="btnFold"><span class="icon">unfold_less</span>Tout replier</button>
       <button class="btn btn-outlined" id="btnSettings"><span class="icon">tune</span>Réglages</button>
       <button class="btn btn-outlined" id="btnPrint"><span class="icon">print</span>Imprimer</button>
     </div>
@@ -369,29 +397,39 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:none;border-ra
   <div id="banner" class="banner hidden"></div>
 
   <div id="settings" class="card settings hidden">
+
+    <div class="meta-data" id="metaData"></div>
+
     <div class="setting">
       <label><b>Décroché</b> — plus aucune connexion depuis plus de…</label>
       <input type="range" id="thDrop" min="15" max="120" step="5">
       <span class="val" id="thDropV"></span>
+      <span class="impact" id="thDropN"></span>
     </div>
     <div class="setting">
       <label><b>À relancer</b> — silencieux depuis plus de…</label>
       <input type="range" id="thNudge" min="7" max="60" step="1">
       <span class="val" id="thNudgeV"></span>
+      <span class="impact" id="thNudgeN"></span>
     </div>
     <div class="setting">
       <label><b>À un doigt de finir</b> — un décroché au-delà de…</label>
-      <input type="range" id="thGold" min="30" max="95" step="5">
+      <input type="range" id="thGold" min="50" max="90" step="5">
       <span class="val" id="thGoldV"></span>
+      <span class="impact" id="thGoldN"></span>
     </div>
     <div class="setting">
       <label><b>Terminé</b> — à partir de…</label>
       <input type="range" id="thDone" min="80" max="100" step="1">
       <span class="val" id="thDoneV"></span>
+      <span class="impact" id="thDoneN"></span>
     </div>
+
     <div class="divider" style="margin:6px 0 16px"></div>
+
     <div class="setting">
       <label>Seuils et suivi des relances sont mémorisés <b>dans ce navigateur uniquement</b> — ils ne sont pas partagés entre plusieurs postes.</label>
+      <button class="btn btn-tonal btn-sm" id="btnShare"><span class="icon">link</span>Copier le lien de ma configuration</button>
       <button class="btn btn-text btn-sm" id="btnResetTh"><span class="icon">restart_alt</span>Seuils par défaut</button>
       <button class="btn btn-text btn-sm" id="btnResetRel"><span class="icon">restart_alt</span>Réinitialiser le suivi</button>
     </div>
@@ -434,7 +472,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:none;border-ra
 /* ==================================================================
    Réglages, mémorisés dans le navigateur
    ================================================================== */
-var DEFAULTS = { drop:45, nudge:14, gold:60, done:95 };
+var DEFAULTS = { drop:30, nudge:14, gold:75, done:95 };
 var LS_TH = "tm.seuils", LS_REL = "tm.relances";
 
 function load(k, def){
@@ -443,8 +481,22 @@ function load(k, def){
 }
 function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 
+var LS_PLI = "tm.plies";
 var TH  = load(LS_TH, DEFAULTS);
 var REL = load(LS_REL, {});
+var PLI = load(LS_PLI, {});   // groupes repliés — mémorisés d'une visite à l'autre
+
+/* Un lien de configuration partagé (?drop=60&nudge=21…) prend le pas
+   sur les seuils mémorisés, et devient les nouveaux seuils de ce poste. */
+(function lireSeuilsDeLURL(){
+  var q = new URLSearchParams(location.search);
+  var vu = false;
+  ["drop","nudge","gold","done"].forEach(function(k){
+    var v = parseInt(q.get(k), 10);
+    if (!isNaN(v)){ TH[k] = v; vu = true; }
+  });
+  if (vu){ if (TH.nudge >= TH.drop) TH.nudge = TH.drop - 1; save(LS_TH, TH); }
+})();
 
 /* ==================================================================
    Statuts
@@ -463,7 +515,7 @@ var RELANCES = ["gold","dropped","never","nudge"];
 
 function why(k){
   return {
-    gold:    "Plus de " + TH.gold + " % du parcours fait, mais plus aucune connexion depuis longtemps. Les relances les plus rentables : quelques heures les séparent du certificat.",
+    gold:    "Entre " + TH.gold + " % et " + (TH.done - 1) + " % du parcours, mais plus aucune connexion depuis plus de " + TH.drop + " jours. Les relances les plus rentables : quelques heures les séparent du certificat.",
     dropped: "Ont commencé, puis ne se sont plus reconnectés depuis plus de " + TH.drop + " jours.",
     never:   "Inscrits, mais n'ont jamais ouvert la formation une seule fois. Problème d'activation, pas de motivation.",
     nudge:   "Silencieux depuis " + TH.nudge + " à " + TH.drop + " jours. Un rappel peut suffire à les remettre en route.",
@@ -473,12 +525,15 @@ function why(k){
   }[k];
 }
 function statusOf(pct, started, inactive){
-  if (pct >= TH.done) return "done";
-  if (!started) return "never";
-  if (inactive === null) return "unknown";
-  if (inactive <= TH.nudge) return "active";
-  if (inactive <= TH.drop)  return "nudge";
-  return pct >= TH.gold ? "gold" : "dropped";
+  if (pct >= TH.done) return "done";              // terminé
+  if (!started) return "never";                   // jamais ouvert
+  if (inactive === null) return "unknown";        // date de connexion inconnue
+  if (inactive <= TH.nudge) return "active";      // connecté récemment
+  if (inactive <= TH.drop)  return "nudge";       // silencieux, mais pas encore décroché
+  // Au-delà du seuil de décrochage : « à un doigt de finir » n'est qu'une TRANCHE
+  // de l'avancement (TH.gold à done exclu). En dehors de cette tranche — donc AUSSI
+  // pour un décroché à 65 % — on retombe bien dans « décroché ».
+  return (pct >= TH.gold && pct < TH.done) ? "gold" : "dropped";
 }
 
 /* ==================================================================
@@ -554,7 +609,7 @@ function ondulant(selecteur){
    ================================================================== */
 var SNAPS = [], VIS = [];
 var view = "relances", filter = "all", search = "", fCourse = "all", fTag = "all", sort = "urgence";
-var open = null;
+var ligneOuverte = null;   // F009 : « open » masquait window.open
 var MODE_MANUEL = new URLSearchParams(location.search).has("manuel");
 
 /* ==================================================================
@@ -673,16 +728,6 @@ function build(){
     return o;
   });
 
-  var counts = {}, prevCounts = {};
-  ORDER.forEach(function(k){ counts[k] = records.filter(function(r){ return r.status === k; }).length; });
-  if (prev){
-    prev.records.forEach(function(r){
-      var pct = Math.round(r.fait / r.total * 100);
-      var k = statusOf(pct, r.started, daysSince(r.last_activity));
-      prevCounts[k] = (prevCounts[k] || 0) + 1;
-    });
-  }
-
   var courses = [], tags = [], emails = {};
   records.forEach(function(r){
     if (courses.indexOf(r.course) < 0) courses.push(r.course);
@@ -694,15 +739,23 @@ function build(){
   return {
     date: cur.date,
     prevDate: prev ? prev.date : null,
-    records: records, counts: counts, prevCounts: prevCounts,
+    records: records,
+    prevRecords: prev ? prev.records : [],   // bruts : les compteurs sont recalculés selon les filtres
     hasActivity: records.some(function(r){ return !!r.last_activity; }),
-    people: Object.keys(emails).length,
-    courses: courses, tags: tags,
-    avg: Math.round(records.reduce(function(a, b){ return a + b.pct; }, 0) / records.length)
+    courses: courses, tags: tags
   };
 }
 
-function history(r){
+/* Le même filtre s'applique aux relevés d'aujourd'hui et à ceux d'avant :
+   c'est ce qui permet de comparer des choses comparables. */
+function passeFiltres(r){
+  if (fCourse !== "all" && r.course !== fCourse) return false;
+  if (fTag !== "all" && (r.tags || []).indexOf(fTag) < 0) return false;
+  if (search && String(r.name).toLowerCase().indexOf(search) < 0 && r.email.indexOf(search) < 0) return false;
+  return true;
+}
+
+function historique(r){   // F010 : « history » masquait window.history
   return SNAPS.map(function(s){
     var m = null;
     for (var i = 0; i < s.records.length; i++){
@@ -745,14 +798,14 @@ function rowHTML(r){
       '<div class="meta">' + meta + '</div>' +
     '</div>';
 
-  if (open === rkey(r)) html += detailHTML(r);
+  if (ligneOuverte === rkey(r)) html += detailHTML(r);
   return html;
 }
 
 function dbox(k, v){ return '<div class="dbox"><div class="k">' + k + '</div><div class="v">' + esc(v) + '</div></div>'; }
 
 function detailHTML(r){
-  var h = history(r);
+  var h = historique(r);
   var s = S[r.status];
   var courbe = '<div class="body-sm">Un seul relevé pour l\'instant — la courbe apparaîtra dès la prochaine mise à jour.</div>';
 
@@ -789,20 +842,41 @@ function detailHTML(r){
     '</div></div>';
 }
 
-function apply(rows){
-  return rows.filter(function(r){
-    if (fCourse !== "all" && r.course !== fCourse) return false;
-    if (fTag !== "all" && (r.tags || []).indexOf(fTag) < 0) return false;
-    if (search && r.name.toLowerCase().indexOf(search) < 0 && r.email.indexOf(search) < 0) return false;
-    return true;
+/* Montre en direct combien de personnes chaque seuil concerne.
+   Sans ça, déplacer un curseur est un acte aveugle. */
+function majImpacts(M, counts){
+  var champs = {
+    thDropN:  { n: counts.dropped + counts.gold, c:"var(--st-dropped)", mot:"décroché" },
+    thNudgeN: { n: counts.nudge,                 c:"var(--st-nudge)",   mot:"à relancer" },
+    thGoldN:  { n: counts.gold,                  c:"var(--st-gold)",    mot:"à un doigt de finir" },
+    thDoneN:  { n: counts.done,                  c:"var(--st-done)",    mot:"terminé" }
+  };
+  Object.keys(champs).forEach(function(id){
+    var f = champs[id];
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '<b style="color:' + f.c + '">' + f.n + '</b> ' +
+                   (f.n > 1 ? "personnes" : "personne");
+    el.title = f.n + " " + (f.n > 1 ? "inscriptions" : "inscription") + " en « " + f.mot + " » avec ce seuil";
   });
+
+  var meta = document.getElementById("metaData");
+  if (meta){
+    var j = daysSince(M.date);
+    meta.innerHTML = ico("database") +
+      '<span>Dernier relevé : <b>' + fmtDate(M.date) + '</b>' +
+      (j === 0 ? " (aujourd'hui)" : " — il y a " + j + " j") +
+      ' · ' + SNAPS.length + ' relevé' + (SNAPS.length > 1 ? "s" : "") +
+      (SNAPS.length > 1 ? ' depuis le ' + fmtDate(SNAPS[0].date) : '') + '</span>';
+  }
 }
+
 function sortRows(rows){
   var cmp = {
     urgence:  function(a, b){ return ORDER.indexOf(a.status) - ORDER.indexOf(b.status) || (b.inactive || 0) - (a.inactive || 0); },
     pct:      function(a, b){ return a.pct - b.pct; },
     inactive: function(a, b){ return (b.inactive || 0) - (a.inactive || 0); },
-    name:     function(a, b){ return a.name.localeCompare(b.name); }
+    name:     function(a, b){ return String(a.name || "").localeCompare(String(b.name || "")); }
   }[sort];
   return rows.slice().sort(function(a, b){
     return (a.relance ? 1 : 0) - (b.relance ? 1 : 0) || cmp(a, b);
@@ -844,10 +918,39 @@ function render(){
 
   document.getElementById("toolbar").classList.remove("hidden");
 
+  /* ---- Le périmètre : tout l'en-tête s'y conforme ----
+     On applique formation / étiquette / recherche — mais PAS le filtre de statut,
+     sinon cliquer sur « Décroché » mettrait tous les autres compteurs à zéro. */
+  var scope     = M.records.filter(passeFiltres);
+  var scopePrev = M.prevRecords.filter(passeFiltres);
+  var filtre    = (fCourse !== "all") || (fTag !== "all") || !!search;
+
+  var counts = {}, prevCounts = {};
+  ORDER.forEach(function(k){
+    counts[k] = scope.filter(function(r){ return r.status === k; }).length;
+  });
+  scopePrev.forEach(function(r){
+    var pct = Math.round(r.fait / r.total * 100);
+    var k = statusOf(pct, r.started, daysSince(r.last_activity));
+    prevCounts[k] = (prevCounts[k] || 0) + 1;
+  });
+
+  var emails = {}, cours = {};
+  scope.forEach(function(r){ emails[r.email] = 1; cours[r.course] = 1; });
+  var nbPersonnes = Object.keys(emails).length;
+  var nbCours     = Object.keys(cours).length;
+  var moyenne     = scope.length ? Math.round(scope.reduce(function(a, b){ return a + b.pct; }, 0) / scope.length) : 0;
+
   var jours = daysSince(M.date);
-  document.getElementById("summaryLine").textContent =
-    M.people + " apprenants · " + M.courses.length + " formations · " + M.records.length +
-    " inscriptions · " + M.avg + " % d'avancement moyen";
+  var ligne = nbPersonnes + " apprenant" + (nbPersonnes > 1 ? "s" : "") +
+              " · " + nbCours + " formation" + (nbCours > 1 ? "s" : "") +
+              " · " + scope.length + " inscription" + (scope.length > 1 ? "s" : "") +
+              " · " + moyenne + " % d'avancement moyen";
+
+  document.getElementById("summaryLine").innerHTML =
+    (filtre ? '<span class="scope-tag">' + ico("filter_alt") +
+              esc(fCourse !== "all" ? fCourse : (fTag !== "all" ? fTag : "« " + search + " »")) +
+              '</span>' : '') + esc(ligne);
 
   /* --- fraîcheur --- */
   var frais = jours !== null && jours <= 8;
@@ -868,13 +971,13 @@ function render(){
   }
 
   /* --- compteurs --- */
-  document.getElementById("stats").innerHTML = ORDER.filter(function(k){ return M.counts[k]; }).map(function(k){
+  document.getElementById("stats").innerHTML = ORDER.filter(function(k){ return counts[k]; }).map(function(k){
     var s = S[k], on = filter === k;
-    var d = (M.prevCounts[k] === undefined) ? 0 : M.counts[k] - M.prevCounts[k];
+    var d = (prevCounts[k] === undefined) ? 0 : counts[k] - prevCounts[k];
     var couleurD = d > 0 ? "var(--st-dropped)" : "var(--st-done)";
     return '<button class="stat" data-status="' + k + '"' +
       (on ? ' style="background:' + s.bg + '"' : '') + '>' +
-      '<div class="n" style="color:' + s.c + '">' + M.counts[k] + '</div>' +
+      '<div class="n" style="color:' + s.c + '">' + counts[k] + '</div>' +
       '<div class="l">' + s.label + '</div>' +
       (d ? '<div class="d" style="color:' + couleurD + '">' +
             ico(d > 0 ? "arrow_upward" : "arrow_downward") + Math.abs(d) + ' cette semaine</div>' : '') +
@@ -882,9 +985,9 @@ function render(){
   }).join("");
 
   /* --- répartition --- */
-  document.getElementById("distrib").innerHTML = ORDER.filter(function(k){ return M.counts[k]; }).map(function(k){
-    return '<div title="' + S[k].label + ' : ' + M.counts[k] + '" style="width:' +
-      (M.counts[k] / M.records.length * 100) + '%;background:' + S[k].c + '"></div>';
+  document.getElementById("distrib").innerHTML = ORDER.filter(function(k){ return counts[k]; }).map(function(k){
+    return '<div title="' + S[k].label + ' : ' + counts[k] + '" style="width:' +
+      (counts[k] / (scope.length || 1) * 100) + '%;background:' + S[k].c + '"></div>';
   }).join("");
 
   fillSelect("fCourse", M.courses, "Toutes les formations", fCourse);
@@ -892,8 +995,10 @@ function render(){
 
   /* --- contenu --- */
   if (view === "formations"){
-    content.innerHTML = M.courses.map(function(c){
-      var g = M.records.filter(function(r){ return r.course === c; });
+    var listeCours = (fCourse !== "all") ? [fCourse] : M.courses;
+    content.innerHTML = listeCours.map(function(c){
+      var g = scope.filter(function(r){ return r.course === c; });
+      if (!g.length) return "";
       var moy = Math.round(g.reduce(function(a, b){ return a + b.pct; }, 0) / g.length);
       var todo = g.filter(function(r){ return RELANCES.indexOf(r.status) >= 0; }).length;
       return '<div class="card group">' +
@@ -916,12 +1021,14 @@ function render(){
     var any = false;
     content.innerHTML = RELANCES.map(function(k){
       var s = S[k];
-      var g = sortRows(apply(M.records).filter(function(r){ return r.status === k; }));
+      var g = sortRows(M.records.filter(passeFiltres).filter(function(r){ return r.status === k; }));
       if (!g.length) return "";
       any = true;
       var restants = g.filter(function(r){ return !r.relance; }).length;
-      return '<div class="card group">' +
-        '<div class="group-head" style="background:' + s.bg + '">' +
+      var plie = !!PLI[k];
+      return '<div class="card group' + (plie ? " plie" : "") + '">' +
+        '<div class="group-head" style="background:' + s.bg + '" data-plier="' + k + '">' +
+          '<div class="chevron" style="color:' + s.c + '">' + ico("expand_more") + '</div>' +
           '<div class="txt">' +
             '<div class="ttl" style="color:' + s.c + '">' + ico(s.ico) + s.label +
               '<span class="count" style="background:' + s.c + ';color:#fff">' + g.length + '</span>' +
@@ -933,7 +1040,8 @@ function render(){
           '<button class="btn btn-outlined btn-sm" data-mails="' + k + '">' + ico("content_copy") + 'Copier les e-mails</button>' +
           '<button class="btn btn-outlined btn-sm" data-export="' + k + '">' + ico("download") + 'CSV</button>' +
         '</div>' +
-        g.map(rowHTML).join("") + '</div>';
+        '<div class="group-body">' + g.map(rowHTML).join("") + '</div>' +
+        '</div>';
     }).join("");
 
     if (!any){
@@ -943,32 +1051,45 @@ function render(){
     }
 
   } else {
-    VIS = sortRows(apply(M.records).filter(function(r){ return filter === "all" || r.status === filter; }));
-    content.innerHTML = '<div class="card group">' +
-      '<div class="group-head">' +
+    VIS = sortRows(M.records.filter(passeFiltres).filter(function(r){ return filter === "all" || r.status === filter; }));
+    var plieL = !!PLI._liste;
+    content.innerHTML = '<div class="card group' + (plieL ? " plie" : "") + '">' +
+      '<div class="group-head" data-plier="_liste">' +
+        '<div class="chevron">' + ico("expand_more") + '</div>' +
         '<div class="txt"><div class="ttl">' + ico("groups") + VIS.length + ' inscription' + (VIS.length > 1 ? "s" : "") + '</div></div>' +
         '<button class="btn btn-outlined btn-sm" data-mails="_all">' + ico("content_copy") + 'Copier les e-mails</button>' +
         '<button class="btn btn-outlined btn-sm" data-export="_all">' + ico("download") + 'CSV</button>' +
       '</div>' +
-      (VIS.length ? VIS.map(rowHTML).join("")
-                  : '<div class="empty">' + ico("search_off") + '<div class="t">Aucun apprenant ne correspond</div></div>') +
-      '</div>';
+      '<div class="group-body">' +
+        (VIS.length ? VIS.map(rowHTML).join("")
+                    : '<div class="empty">' + ico("search_off") + '<div class="t">Aucun apprenant ne correspond</div></div>') +
+      '</div></div>';
   }
 
   /* --- branchements --- */
   function groupe(k){
-    return k === "_all" ? VIS : sortRows(apply(M.records).filter(function(r){ return r.status === k; }));
+    return k === "_all" ? VIS : sortRows(M.records.filter(passeFiltres).filter(function(r){ return r.status === k; }));
   }
 
   document.querySelectorAll(".stat").forEach(function(b){
     b.onclick = function(){
       var k = b.dataset.status;
       filter = (filter === k) ? "all" : k;
-      view = "liste"; open = null;
+      view = "liste"; ligneOuverte = null;
       document.querySelectorAll("#views button").forEach(function(x){ x.classList.toggle("on", x.dataset.view === "liste"); });
       render();
     };
   });
+  document.querySelectorAll("[data-plier]").forEach(function(h){
+    h.onclick = function(e){
+      if (e.target.closest(".btn")) return;   // les boutons du bandeau gardent leur rôle
+      var k = h.dataset.plier;
+      if (PLI[k]) delete PLI[k]; else PLI[k] = 1;
+      save(LS_PLI, PLI);
+      h.parentNode.classList.toggle("plie");
+    };
+  });
+
   document.querySelectorAll("[data-course]").forEach(function(b){
     b.onclick = function(e){
       e.stopPropagation();
@@ -1006,7 +1127,7 @@ function render(){
     };
   });
   document.querySelectorAll(".row").forEach(function(el){
-    el.onclick = function(){ open = (open === el.dataset.k) ? null : el.dataset.k; render(); };
+    el.onclick = function(){ ligneOuverte = (ligneOuverte === el.dataset.k) ? null : el.dataset.k; render(); };
   });
   document.querySelectorAll("[data-copy]").forEach(function(b){
     b.onclick = function(e){
@@ -1015,10 +1136,26 @@ function render(){
     };
   });
 
-  ondulant(".stat, .row, .btn, .check");
+  majImpacts(M, counts);
+
+  /* F003 — L'effet de vague ne se rebranche QUE sur les éléments recréés à ce rendu.
+     Avant, le sélecteur ".btn" attrapait aussi les boutons permanents de l'en-tête,
+     qui accumulaient un écouteur de plus à chaque render() — et render() se déclenche
+     à chaque coche, chaque clic de ligne, chaque mouvement de curseur. */
+  ondulant("#content .row, #content .btn, #content .check, .stat");
+
+  // l'icône du bouton reflète l'état courant
+  var heads = document.querySelectorAll("[data-plier]");
+  var tout = heads.length > 0 && Array.prototype.every.call(heads, function(h){ return PLI[h.dataset.plier]; });
+  var bf = document.getElementById("btnFold");
+  bf.innerHTML = ico(tout ? "unfold_more" : "unfold_less") + (tout ? "Tout déplier" : "Tout replier");
+  bf.classList.toggle("hidden", heads.length === 0);
 
   /* --- méthodo --- */
   document.getElementById("methodo").innerHTML =
+    (filtre ? '<b>Un filtre est actif.</b> Les compteurs, la répartition et la moyenne ' +
+              'ne portent que sur le périmètre sélectionné, pas sur l\'ensemble des apprenants. ' +
+              'Cliquez sur « Tout afficher » pour revenir à la vue globale.<br><br>' : '') +
     '<b>Comment les statuts sont calculés.</b> ' +
     'L\'avancement vient de la colonne « Learning Activities » du summary (par ex. 4 / 346), converti en pourcentage. ' +
     'La dernière connexion vient de la colonne « Last activity » de l\'ExportUsers, rapprochée par e-mail. ' +
@@ -1026,7 +1163,8 @@ function render(){
     '<b>À relancer</b> : entre ' + TH.nudge + ' et ' + TH.drop + ' jours. ' +
     '<b>Actif</b> : moins de ' + TH.nudge + ' jours. ' +
     '<b>Terminé</b> : au moins ' + TH.done + ' %. ' +
-    'Un décroché au-delà de ' + TH.gold + ' % est isolé à part. Ces seuils se règlent dans « Réglages ». ' +
+    'Un décroché entre ' + TH.gold + ' % et ' + (TH.done - 1) + ' % est isolé dans « à un doigt de finir » — les relances les plus rentables. ' +
+    'Ces seuils se règlent dans « Réglages ». ' +
     'Le liseré gris sur les barres montre le chemin parcouru depuis le relevé précédent.';
 }
 
@@ -1076,13 +1214,26 @@ function showDrop(){
    Branchements globaux
    ================================================================== */
 document.getElementById("fileInput").onchange = function(e){ handleFiles(e.target.files); e.target.value = ""; };
+document.getElementById("btnFold").onclick = function(){
+  var head = document.querySelectorAll("[data-plier]");
+  var toutPlie = head.length > 0 && Array.prototype.every.call(head, function(h){ return PLI[h.dataset.plier]; });
+
+  head.forEach(function(h){
+    var k = h.dataset.plier;
+    if (toutPlie) delete PLI[k]; else PLI[k] = 1;
+  });
+  save(LS_PLI, PLI);
+  render();
+  snack(toutPlie ? "Tout déplié" : "Tout replié", toutPlie ? "unfold_more" : "unfold_less");
+};
+
 document.getElementById("btnPrint").onclick   = function(){ window.print(); };
 document.getElementById("btnSettings").onclick = function(){
   document.getElementById("settings").classList.toggle("hidden");
 };
 document.querySelectorAll("#views button").forEach(function(b){
   b.onclick = function(){
-    view = b.dataset.view; open = null;
+    view = b.dataset.view; ligneOuverte = null;
     document.querySelectorAll("#views button").forEach(function(x){ x.classList.toggle("on", x === b); });
     render();
   };
@@ -1092,7 +1243,7 @@ document.getElementById("fCourse").onchange = function(e){ fCourse = e.target.va
 document.getElementById("fTag").onchange    = function(e){ fTag = e.target.value; render(); };
 document.getElementById("sort").onchange    = function(e){ sort = e.target.value; render(); };
 document.getElementById("btnClear").onclick = function(){
-  filter = "all"; fCourse = "all"; fTag = "all"; search = ""; open = null;
+  filter = "all"; fCourse = "all"; fTag = "all"; search = ""; ligneOuverte = null;
   document.getElementById("search").value = "";
   render();
   snack("Filtres réinitialisés", "filter_alt_off");
@@ -1112,6 +1263,15 @@ SLIDERS.forEach(function(s){
     save(LS_TH, TH); syncSliders(); render();
   };
 });
+document.getElementById("btnShare").onclick = function(){
+  var url = location.origin + location.pathname +
+            "?drop=" + TH.drop + "&nudge=" + TH.nudge +
+            "&gold=" + TH.gold + "&done=" + TH.done;
+  navigator.clipboard.writeText(url)
+    .then(function(){ snack("Lien copié — qui l'ouvre verra vos seuils", "link"); })
+    .catch(function(){ snack("Copie impossible dans ce navigateur", "error"); });
+};
+
 document.getElementById("btnResetTh").onclick = function(){
   TH = Object.assign({}, DEFAULTS); save(LS_TH, TH); syncSliders(); render();
   snack("Seuils remis par défaut", "restart_alt");
