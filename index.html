@@ -510,12 +510,12 @@ var S = {
   done:    { label:"Terminé",             c:"var(--st-done)",    bg:"var(--stc-done)",    ico:"task_alt" },
   unknown: { label:"Statut inconnu",      c:"var(--st-unknown)", bg:"var(--stc-unknown)", ico:"help" }
 };
-var ORDER    = ["gold","dropped","never","nudge","active","done","unknown"];
-var RELANCES = ["gold","dropped","never","nudge"];
+var ORDER    = ["dropped","never","nudge","active","gold","done","unknown"];
+var RELANCES = ["dropped","never","nudge"];   // « gold » n'y est plus : c'est une étape, pas une relance
 
 function why(k){
   return {
-    gold:    "Entre " + TH.gold + " % et " + (TH.done - 1) + " % du parcours, mais plus aucune connexion depuis plus de " + TH.drop + " jours. Les relances les plus rentables : quelques heures les séparent du certificat.",
+    gold:    "Entre " + TH.gold + " % et " + (TH.done - 1) + " % du parcours accompli. Sur la dernière ligne droite avant le certificat.",
     dropped: "Ont commencé, puis ne se sont plus reconnectés depuis plus de " + TH.drop + " jours.",
     never:   "Inscrits, mais n'ont jamais ouvert la formation une seule fois. Problème d'activation, pas de motivation.",
     nudge:   "Silencieux depuis " + TH.nudge + " à " + TH.drop + " jours. Un rappel peut suffire à les remettre en route.",
@@ -527,13 +527,14 @@ function why(k){
 function statusOf(pct, started, inactive){
   if (pct >= TH.done) return "done";              // terminé
   if (!started) return "never";                   // jamais ouvert
+  // « À un doigt de finir » = une TRANCHE d'avancement (TH.gold à done exclu),
+  // quel que soit l'état de connexion. C'est une étape de progression, pas une
+  // alerte : quelqu'un à 94 % qui travaille encore y figure aussi.
+  if (pct >= TH.gold && pct < TH.done) return "gold";
   if (inactive === null) return "unknown";        // date de connexion inconnue
   if (inactive <= TH.nudge) return "active";      // connecté récemment
-  if (inactive <= TH.drop)  return "nudge";       // silencieux, mais pas encore décroché
-  // Au-delà du seuil de décrochage : « à un doigt de finir » n'est qu'une TRANCHE
-  // de l'avancement (TH.gold à done exclu). En dehors de cette tranche — donc AUSSI
-  // pour un décroché à 65 % — on retombe bien dans « décroché ».
-  return (pct >= TH.gold && pct < TH.done) ? "gold" : "dropped";
+  if (inactive <= TH.drop)  return "nudge";       // silencieux
+  return "dropped";                               // plus rien depuis longtemps
 }
 
 /* ==================================================================
@@ -1163,7 +1164,7 @@ function render(){
     '<b>À relancer</b> : entre ' + TH.nudge + ' et ' + TH.drop + ' jours. ' +
     '<b>Actif</b> : moins de ' + TH.nudge + ' jours. ' +
     '<b>Terminé</b> : au moins ' + TH.done + ' %. ' +
-    'Un décroché entre ' + TH.gold + ' % et ' + (TH.done - 1) + ' % est isolé dans « à un doigt de finir » — les relances les plus rentables. ' +
+    'Tout apprenant entre ' + TH.gold + ' % et ' + (TH.done - 1) + ' % est classé « à un doigt de finir » — qu\'il soit encore actif ou non. ' +
     'Ces seuils se règlent dans « Réglages ». ' +
     'Le liseré gris sur les barres montre le chemin parcouru depuis le relevé précédent.';
 }
